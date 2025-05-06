@@ -1,73 +1,46 @@
 {
-    "timestamp": "2025-05-06T12:03:11.556634",
-    "scan_results": {
-        "port_scan": {
-            "ports": {
-                "80": {
-                    "state": "open",
-                    "reason": "syn-ack",
-                    "name": "http",
-                    "product": "nginx",
-                    "version": "1.24.0",
-                    "extrainfo": "Ubuntu",
-                    "conf": "10",
-                    "cpe": "cpe:/o:linux:linux_kernel",
-                    "script": {
-                        "http-title": "502 Bad Gateway",
-                        "http-server-header": "nginx/1.24.0 (Ubuntu)"
-                    }
-                },
-                "8080": {
-                    "state": "open",
-                    "reason": "syn-ack",
-                    "name": "tcpwrapped",
-                    "product": "",
-                    "version": "",
-                    "extrainfo": "",
-                    "conf": "8",
-                    "cpe": "",
-                    "script": {
-                        "http-server-header": "Apache/2.4.58 (Ubuntu)",
-                        "http-title": "Site doesn't have a title (text/html).",
-                        "http-open-proxy": "Proxy might be redirecting requests"
-                    }
-                }
-            },
-            "os": [
-                {
-                    "name": "Linux 2.6.32",
-                    "accuracy": "100",
-                    "line": "55742",
-                    "osclass": [
-                        {
-                            "type": "general purpose",
-                            "vendor": "Linux",
-                            "osfamily": "Linux",
-                            "osgen": "2.6.X",
-                            "accuracy": "100",
-                            "cpe": [
-                                "cpe:/o:linux:linux_kernel:2.6.32"
-                            ]
-                        }
-                    ]
-                }
-            ],
-            "hostname": ""
+    "port_scan": {
+        "error": "'localhost'"
+    },
+    "ssl_check": {
+        "error": "[Errno 111] Connection refused"
+    },
+    "security_headers": {
+        "Strict-Transport-Security": null,
+        "Content-Security-Policy": null,
+        "X-Frame-Options": null,
+        "X-XSS-Protection": null,
+        "X-Content-Type-Options": null
+    },
+    "vulnerability_tests": {
+        "sql_injection": {
+            "error": "HTTPConnectionPool(host=\"localhost'%20or%20'1'='1\", port=80): Max retries exceeded with url: / (Caused by NameResolutionError(\"<urllib3.connection.HTTPConnection object at 0x7f321730f830>: Failed to resolve 'localhost'%20or%20'1'='1' ([Errno -2] Name or service not known)\"))"
         },
-        "ssl_check": {
-            "error": "[Errno 111] Connection refused"
+        "xss": {
+            "error": "HTTPConnectionPool(host='localhost%3cscript%3ealert(%22xss%22)%3c', port=80): Max retries exceeded with url: /script%3E (Caused by NameResolutionError(\"<urllib3.connection.HTTPConnection object at 0x7f32172fc7a0>: Failed to resolve 'localhost%3cscript%3ealert(%22xss%22)%3c' ([Errno -2] Name or service not known)\"))"
         },
-        "security_headers": {
-            "error": "HTTPSConnectionPool(host='127.0.0.1', port=443): Max retries exceeded with url: / (Caused by NewConnectionError('<urllib3.connection.HTTPSConnection object at 0x7feffecd91c0>: Failed to establish a new connection: [Errno 111] Connection refused'))"
+        "command_injection": {
+            "error": "HTTPConnectionPool(host='localhost;%20ls', port=80): Max retries exceeded with url: / (Caused by NameResolutionError(\"<urllib3.connection.HTTPConnection object at 0x7f321730fc20>: Failed to resolve 'localhost;%20ls' ([Errno -2] Name or service not known)\"))"
         },
-        "packet_analysis": {
-            "total_packets": 17,
-            "protocols": {
-                "UDP": 17
-            },
-            "suspicious_patterns": []
+        "csrf": {
+            "error": "HTTPConnectionPool(host='localhost%3cimg%20src=%22http', port=80): Max retries exceeded with url: /localhost?action=delete&id=1%22%20/%3E (Caused by NameResolutionError(\"<urllib3.connection.HTTPConnection object at 0x7f32172fc410>: Failed to resolve 'localhost%3cimg%20src=%22http' ([Errno -2] Name or service not known)\"))"
         }
     },
-    "vulnerabilities": [],
-    "recommendations": []
+    "metadata": {
+        "target": "http://localhost",
+        "start_time": "2025-05-06T17:10:36.850313",
+        "end_time": "2025-05-06T17:11:17.151812",
+        "duration": "0:00:40.301503",
+        "scanner_version": "1.0.0",
+        "command_args": {
+            "target": "localhost",
+            "interface": "eth0",
+            "duration": 30,
+            "output": "security_report.json",
+            "verbose": false,
+            "packet_capture": false,
+            "retries": 3,
+            "timeout": 30
+        }
+    }
 }
