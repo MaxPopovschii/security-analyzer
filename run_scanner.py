@@ -1,4 +1,4 @@
-from main import SecurityScanner
+from scanner import SecurityScanner
 import argparse
 import json
 
