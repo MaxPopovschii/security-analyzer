@@ -29,5 +29,16 @@ Thumbs.db
 
 # Backup
 *.~*
+security_report.json
 
-
+# File di configurazione
+*.ini
+*.cfg
+*.conf
+*.json
+*.yaml
+*.yml
+*.toml
+# File di database
+*.sqlite
+*.database                  
