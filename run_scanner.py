@@ -32,6 +32,26 @@ def main():
     header_results = scanner.analyze_http_security_headers(url)
     scanner.scan_results['security_headers'] = header_results
 
+    # Test for SQL Injection
+    print("[+] Testing for SQL Injection...")
+    if scanner.test_sql_injection(url):
+        print("[+] SQL Injection vulnerability found!")
+
+    # Test for XSS vulnerability
+    print("[+] Testing for XSS vulnerability...")
+    if scanner.test_xss(url):
+        print("[+] XSS vulnerability found!")
+
+    # Test for Command Injection
+    print("[+] Testing for Command Injection...")
+    if scanner.test_command_injection(url):
+        print("[+] Command Injection vulnerability found!")
+
+    # Test for CSRF vulnerability
+    print("[+] Testing for CSRF vulnerability...")
+    if scanner.test_csrf(url):
+        print("[+] CSRF vulnerability found!")
+
     # Capture packets
     print(f"[+] Capturing network traffic for {args.duration} seconds...")
     packet_results = scanner.packet_capture(args.interface, args.duration)

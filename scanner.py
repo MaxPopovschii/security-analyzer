@@ -87,6 +87,73 @@ class SecurityScanner:
         
         return analysis
 
+    def test_sql_injection(self, url):
+        """Test for SQL Injection vulnerability"""
+        try:
+            payloads = ["' OR 1=1 --", "' UNION SELECT NULL, NULL --", "'; DROP TABLE users --"]
+            for payload in payloads:
+                response = requests.get(url + payload)
+                if response.status_code == 200 and 'error' in response.text:
+                    self.vulnerabilities.append({
+                        'type': 'SQL Injection',
+                        'url': url,
+                        'payload': payload
+                    })
+                    return True
+            return False
+        except Exception as e:
+            return {'error': str(e)}
+
+    def test_xss(self, url):
+        """Test for Cross-Site Scripting (XSS) vulnerability"""
+        try:
+            payloads = ['<script>alert("XSS")</script>', '<img src="x" onerror="alert(1)">']
+            for payload in payloads:
+                response = requests.get(url + payload)
+                if payload in response.text:
+                    self.vulnerabilities.append({
+                        'type': 'XSS',
+                        'url': url,
+                        'payload': payload
+                    })
+                    return True
+            return False
+        except Exception as e:
+            return {'error': str(e)}
+
+    def test_command_injection(self, url):
+        """Test for Command Injection vulnerability"""
+        try:
+            payloads = ["; ls", "| ls", "| whoami"]
+            for payload in payloads:
+                response = requests.get(url + payload)
+                if response.status_code == 200 and "root" in response.text:
+                    self.vulnerabilities.append({
+                        'type': 'Command Injection',
+                        'url': url,
+                        'payload': payload
+                    })
+                    return True
+            return False
+        except Exception as e:
+            return {'error': str(e)}
+
+    def test_csrf(self, url):
+        """Test for CSRF vulnerability"""
+        try:
+            payload = '<img src="' + url + '?action=delete&id=1" />'
+            response = requests.get(url + payload)
+            if response.status_code == 200:
+                self.vulnerabilities.append({
+                    'type': 'CSRF',
+                    'url': url,
+                    'payload': payload
+                })
+                return True
+            return False
+        except Exception as e:
+            return {'error': str(e)}
+
     def generate_report(self):
         """Generate security analysis report"""
         report = {
@@ -103,11 +170,29 @@ class SecurityScanner:
         
         # Analyze results and provide recommendations
         for vulnerability in self.vulnerabilities:
-            if 'open_ports' in vulnerability:
+            if vulnerability['type'] == 'SQL Injection':
                 recommendations.append({
                     'severity': 'High',
-                    'description': f'Close unnecessary ports: {vulnerability["open_ports"]}',
-                    'mitigation': 'Configure firewall rules to restrict access'
+                    'description': 'SQL Injection vulnerability found.',
+                    'mitigation': 'Use parameterized queries or ORM.'
+                })
+            elif vulnerability['type'] == 'XSS':
+                recommendations.append({
+                    'severity': 'High',
+                    'description': 'XSS vulnerability found.',
+                    'mitigation': 'Sanitize user inputs and use Content Security Policy.'
+                })
+            elif vulnerability['type'] == 'Command Injection':
+                recommendations.append({
+                    'severity': 'High',
+                    'description': 'Command Injection vulnerability found.',
+                    'mitigation': 'Sanitize user inputs and avoid shell commands.'
+                })
+            elif vulnerability['type'] == 'CSRF':
+                recommendations.append({
+                    'severity': 'High',
+                    'description': 'CSRF vulnerability found.',
+                    'mitigation': 'Implement anti-CSRF tokens.'
                 })
                 
         return recommendations
