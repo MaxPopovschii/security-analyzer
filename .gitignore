@@ -1,0 +1,33 @@
+# Ambiente virtuale
+.venv/
+venv/
+env/
+
+# File compilati di Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Log e file temporanei
+*.log
+*.tmp
+*.swp
+*.bak
+
+# Output di scansioni o report
+*.pcap
+*.scan
+*.report.json
+
+# File di sistema
+.DS_Store
+Thumbs.db
+
+# Config editor
+.vscode/
+.idea/
+
+# Backup
+*.~*
+
+
