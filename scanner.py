@@ -1,3 +1,38 @@
+    def check_sensitive_files(self, url: str, custom_paths=None) -> dict:
+        """Check for accessible sensitive files and directories via HTTP. Permette una lista personalizzata."""
+        logger.info(f"Checking for sensitive files on {url}")
+        default_paths = [
+            '.env', '.git/config', 'config.php', 'config.json', 'backup.zip', 'db.sqlite',
+            'admin/', 'phpinfo.php', 'test.php', 'debug.log', 'wp-config.php', 'composer.json',
+            '.htaccess', '.DS_Store', 'docker-compose.yml', 'package.json',
+            # Backup files
+            'index.php~', 'index.php.bak', 'index.html~', 'index.html.bak',
+            'config.old', 'config.bak', 'wp-config.php~', 'wp-config.php.bak',
+            'db.sql', 'db.sql.bak', 'database.sql', 'database.sql.bak',
+            'site.zip', 'site.tar.gz', 'backup.tar.gz', 'backup.sql',
+            # Private keys
+            'id_rsa', 'id_rsa.pub', 'id_dsa', 'id_dsa.pub', 'id_ecdsa', 'id_ecdsa.pub', 'id_ed25519', 'id_ed25519.pub',
+            # Log files
+            'error.log', 'access.log', 'debug.log', 'server.log', 'application.log',
+            # Temporary and swap files
+            '.bash_history', '.mysql_history', '.psql_history',
+            '.viminfo', '.nfs00000001', '.nfs00000002',
+            '.swp', '.swo', '.tmp', '.temp', '.bak', '.old', '.save',
+            'core', 'core.dump',
+        ]
+        sensitive_paths = custom_paths if custom_paths else default_paths
+        found = {}
+        for path in sensitive_paths:
+            test_url = url.rstrip('/') + '/' + path
+            try:
+                resp = self.session.get(test_url, timeout=5, allow_redirects=False)
+                if resp.status_code == 200 and resp.content and len(resp.content) > 0:
+                    found[path] = {'status': resp.status_code, 'length': len(resp.content)}
+                elif resp.status_code in (401, 403):
+                    found[path] = {'status': resp.status_code, 'protected': True}
+            except Exception as e:
+                logger.debug(f"Error checking {test_url}: {e}")
+        return found
 import nmap
 import ssl
 import socket
@@ -14,6 +49,33 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 class SecurityScanner:
+
+    def check_directory_listing(self, url: str, dirs=None) -> dict:
+        """Check if directory listing is enabled for common or custom directories."""
+        logger.info(f"Checking for directory listing on {url}")
+        default_dirs = ['admin/', 'backup/', 'uploads/', 'files/', 'data/', 'tmp/', 'logs/', 'test/']
+        dirs_to_check = dirs if dirs else default_dirs
+        found = {}
+        for d in dirs_to_check:
+            test_url = url.rstrip('/') + '/' + d.lstrip('/')
+            try:
+                resp = self.session.get(test_url, timeout=5, allow_redirects=False)
+                if resp.status_code == 200 and self._looks_like_dir_listing(resp.text):
+                    found[d] = {'status': resp.status_code, 'listing': True}
+            except Exception as e:
+                logger.debug(f"Error checking {test_url}: {e}")
+        return found
+
+    def _looks_like_dir_listing(self, html: str) -> bool:
+        # Heuristic: look for common directory listing patterns
+        patterns = [
+            'Index of /',
+            '<title>Index of',
+            'Parent Directory',
+            'Directory listing for',
+            'Name\s+Last modified',
+        ]
+        return any(p in html for p in patterns)
     def __init__(self):
         self.nm = nmap.PortScanner()
         self.vulnerabilities: List[Dict[str, Any]] = []

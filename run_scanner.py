@@ -9,6 +9,7 @@ from tqdm import tqdm
 import time
 import requests
 from urllib.parse import urlparse
+import os
 
 # Configure logging
 logging.basicConfig(
@@ -22,6 +23,12 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 class ScanRunner:
+            # Directory listing scan
+            self.results['directory_listing'] = self.run_scan_module(
+                "Directory Listing Scan",
+                self.scanner.check_directory_listing,
+                url
+            )
     def __init__(self):
         self.scanner = SecurityScanner()
         self.results: Dict[str, Any] = {}
@@ -77,6 +84,21 @@ class ScanRunner:
             logger.info(f"Report saved successfully to {filename}")
         except Exception as e:
             logger.error(f"Failed to save report: {str(e)}")
+            raise
+
+    def save_html_report(self, report: Dict[str, Any], filename: str = "security_report.html") -> None:
+        """Save scan results to an HTML file using the report_to_html module"""
+        try:
+            from report_to_html import json_report_to_html
+            # Save to a temporary JSON file first
+            tmp_json = "_tmp_report.json"
+            with open(tmp_json, 'w') as f:
+                json.dump(report, f, indent=4)
+            json_report_to_html(tmp_json, filename)
+            os.remove(tmp_json)
+            logger.info(f"HTML report saved successfully to {filename}")
+        except Exception as e:
+            logger.error(f"Failed to save HTML report: {str(e)}")
             raise
 
     def run_scan_module(self, name: str, func, *args, retries=3, **kwargs) -> Any:
@@ -145,10 +167,26 @@ class ScanRunner:
                 hostname
             )
 
+
             self.results['security_headers'] = self.run_scan_module(
-                "Security Headers Analysis", 
-                self.scanner.analyze_http_security_headers, 
+                "Security Headers Analysis",
+                self.scanner.analyze_http_security_headers,
                 url
+            )
+
+            # Sensitive files scan (custom list support)
+            custom_sensitive = None
+            if getattr(args, 'sensitive_list', None):
+                try:
+                    with open(args.sensitive_list) as f:
+                        custom_sensitive = [line.strip() for line in f if line.strip() and not line.startswith('#')]
+                except Exception as e:
+                    logger.warning(f"Could not read sensitive list file: {e}")
+            self.results['sensitive_files'] = self.run_scan_module(
+                "Sensitive Files Scan",
+                self.scanner.check_sensitive_files,
+                url,
+                custom_paths=custom_sensitive
             )
 
             # Vulnerability tests with proper URL handling
@@ -218,6 +256,8 @@ def main():
     parser.add_argument('--packet-capture', action='store_true', help='Enable packet capture')
     parser.add_argument('--retries', type=int, default=3, help='Number of retries for failed tests')
     parser.add_argument('--timeout', type=int, default=30, help='Timeout for requests in seconds')
+    parser.add_argument('--html', action='store_true', help='Generate HTML report in addition to JSON')
+    parser.add_argument('--sensitive-list', type=str, default=None, help='Percorso di un file con percorsi sensibili personalizzati da controllare')
     args = parser.parse_args()
 
     # Configure logging based on verbosity
@@ -238,6 +278,10 @@ def main():
         results = runner.scan_target(args)
         if 'error' not in results:
             runner.save_report(results, args.output)
+            if getattr(args, 'html', False):
+                html_output = args.output.replace('.json', '.html')
+                runner.save_html_report(results, html_output)
+                logger.info(f"HTML report saved to {html_output}")
             logger.info(f"Scan completed successfully. Report saved to {args.output}")
         else:
             logger.error(f"Scan failed: {results['error']}")

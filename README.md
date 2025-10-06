@@ -1,5 +1,7 @@
 # Security Analyzer
 
+![Pytest](https://img.shields.io/badge/tests-passing-brightgreen?style=flat-square&logo=pytest)
+
 A powerful and automated web application security testing tool designed for vulnerability assessment and penetration testing.
 
 ## 🔥 Features
@@ -29,7 +31,24 @@ sudo apt install -y \
     tcpdump \
     python3-dev \
     libssl-dev
-```
+
+## 🤝 Contributing
+
+Contributi, segnalazioni di bug e suggerimenti sono benvenuti!
+
+1. Fai un fork del repository e crea un branch dedicato per la tua modifica.
+2. Assicurati che i test automatici passino eseguendo:
+
+    ```bash
+    pip install -r requirements.txt
+    pip install pytest
+    pytest
+    ```
+
+3. Apri una Pull Request descrivendo chiaramente le modifiche.
+4. Per segnalare bug o proporre nuove funzionalità, apri una Issue.
+
+Grazie per il tuo contributo!
 
 ### Installation
 
